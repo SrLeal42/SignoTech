@@ -1,11 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import mysql, { type RowDataPacket } from 'mysql2/promise';
-
-interface Usuario {
-    id: number;
-    nome: string;
-    email: string;
-}
+import { createApiRouter } from './routes/api.routes.js';
+import { createMainRouter } from './routes/main.routes.js';
 
 const app = express();
 const port = 3000;
@@ -23,20 +19,14 @@ async function main() {
         connection = await mysql.createConnection(dbConfig);
         console.log('Conectado ao banco de dados MySQL com sucesso!');
 
-        // app.get('/', (req: Request, res: Response) => {
-        //     res.send('API com Node.js e TypeScript está funcionando!');
-        // });
+        app.use(express.static('public/src'));
+        app.use(express.json());
 
-        // app.get('/usuarios', async (req: Request, res: Response) => {
-        //     try {
-        //         // O [rows] desestrutura o resultado. A tipagem ajuda a entender o que é retornado.
-        //         const [rows] = await connection!.execute<Usuario[] & RowDataPacket[]>('SELECT * FROM usuarios');
-        //         res.json(rows);
-        //     } catch (error) {
-        //         console.error('Erro ao buscar usuários:', error);
-        //         res.status(500).send('Erro ao buscar dados');
-        //     }
-        // });
+        const mainRouter = createMainRouter(connection);
+        const apiRouter = createApiRouter(connection);
+
+        app.use('/', mainRouter);
+        app.use('/api', apiRouter);
 
         app.listen(port, () => {
             console.log(`Servidor rodando em http://localhost:${port}`);
@@ -56,5 +46,7 @@ main();
 CREATE TABLE enquete ( id INT AUTO_INCREMENT PRIMARY KEY, titulo VARCHAR(255) NOT NULL, descricao TEXT, data_inicio DATETIME DEFAULT CURRENT_TIMESTAMP, data_termino DATETIME, ativo BOOLEAN DEFAULT TRUE );
 
 CREATE TABLE opcoes (id INT AUTO_INCREMENT PRIMARY KEY, enquete_id INT NOT NULL, texto VARCHAR(255) NOT NULL, num_vote INT DEFAULT 0, FOREIGN KEY (enquete_id) REFERENCES enquete(id) ON DELETE CASCADE );
+
+CREATE TABLE votes ( id INT AUTO_INCREMENT PRIMARY KEY, enquete_id INT NOT NULL, opcoes_id INT NOT NULL, ip_address VARCHAR(45), data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (enquete_id) REFERENCES enquete(id) ON DELETE CASCADE, FOREIGN KEY (opcoes_id) REFERENCES opcoes(id) ON DELETE CASCADE );
 
 */
