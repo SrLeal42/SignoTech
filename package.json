@@ -1,0 +1,35 @@
+{
+  "name": "signotech",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js",
+    "dev": "nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/index.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SrLeal42/SignoTech.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SrLeal42/SignoTech/issues"
+  },
+  "homepage": "https://github.com/SrLeal42/SignoTech#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.15.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.8.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  }
+}
