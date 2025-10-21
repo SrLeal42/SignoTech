@@ -20,16 +20,23 @@ async function DisplayEnquetes() {
         }
 
         enquetes.forEach(enquete => {
+
+            const link = document.createElement('a');
+            
+            link.href = `/enquete/${enquete.id}`;
+            link.classList.add('link-sem-estilo');
+
             const card = document.createElement('div');
             card.classList.add('card-enquete');
-
             card.innerHTML = `
                 <h2>${enquete.titulo}</h2>
                 <p>${enquete.descricao || 'Sem descrição.'}</p>
                 <small>Criada em: ${new Date(enquete.data_inicio).toLocaleDateString('pt-BR')}</small>
             `;
 
-            container.append(card);
+            link.appendChild(card);
+
+            container.append(link);
         });
 
     } catch (error) {
