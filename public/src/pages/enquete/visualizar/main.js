@@ -5,6 +5,7 @@ const opcoesContainer = document.getElementById('opcoes-container');
 const frame = document.querySelector('.frame');
 
 let enqueteAtual = null;
+let socket = null;
 
 function AtualizarStatusUI() {
     if (!enqueteAtual) return;
@@ -47,6 +48,36 @@ function AtualizarStatusUI() {
     });
 }
 
+
+function ConectarWebSocket(enqueteId) {
+    
+    socket = new WebSocket(`ws://${window.location.host}`);
+
+    socket.onopen = () => {
+        console.log('WebSocket conectado!');
+        socket.send(JSON.stringify({ type: 'subscribe', enqueteId: enqueteId }));
+    };
+
+    socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+
+        if (message.type === 'update') {
+            // console.log('Atualização recebida!', message.data);
+            enqueteAtual = message.data; 
+            AtualizarStatusUI();
+        }
+    };
+
+    socket.onclose = () => {
+        console.log('WebSocket desconectado.');
+    };
+
+    socket.onerror = (error) => {
+        console.error('Erro no WebSocket:', error);
+    };
+}
+
+
 async function CarregarEnqueteInicial() {
     const urlPath = window.location.pathname;
     const pathParts = urlPath.split('/');
@@ -80,6 +111,8 @@ async function CarregarEnqueteInicial() {
 
         setInterval(AtualizarStatusUI, 1000);
 
+        ConectarWebSocket(enqueteId);
+
     } catch (error) {
         frame.innerHTML = `<h1>Erro ao carregar enquete: ${error.message}</h1>`;
     }
@@ -96,8 +129,8 @@ async function Votar(opcaoId) {
         }
         if (!response.ok) throw new Error('Não foi possível registrar o voto.');
 
-        const updatedResponse = await fetch(`/api/enquetes/${enqueteAtual.enquete.id}`);
-        enqueteAtual = await updatedResponse.json();
+        // const updatedResponse = await fetch(`/api/enquetes/${enqueteAtual.enquete.id}`);
+        // enqueteAtual = await updatedResponse.json();
 
         AtualizarStatusUI();
         

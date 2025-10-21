@@ -1,13 +1,14 @@
 import { Router, type Request, type Response } from 'express';
 import type mysql from 'mysql2/promise';
 
+import { WebSocketServer, WebSocket } from 'ws';
+
 import { type Enquete } from '../Interfaces/Enquete.js';
 import { type Opcao } from '../Interfaces/Opcao.js';
 import { type EnqueteID } from '../Interfaces/EnqueteID.js';
 
 
-// Esta função cria e configura o roteador
-export function createApiRouter(connection: mysql.Connection) {
+export function createApiRouter(connection: mysql.Connection, wss: WebSocketServer, subscriptions: Map<number, Set<WebSocket>>) {
     const router = Router();
 
     router.get('/enquetes', async (req: Request, res: Response) => {
@@ -217,6 +218,22 @@ export function createApiRouter(connection: mysql.Connection) {
             );
 
             await connection.commit();
+
+                        
+            const [enqueteRow] = await connection.execute<Enquete[] & mysql.RowDataPacket[]>('SELECT * FROM enquete WHERE id = ?', [enquete_id]);
+            const [opcoesEnqueteRow] = await connection.execute<Opcao[] & mysql.RowDataPacket[]>('SELECT * FROM opcoes WHERE enquete_id = ?', [enquete_id]);
+
+            const enqueteCompleta = { enquete: enqueteRow[0], opcoes: opcoesEnqueteRow };
+            // console.log(enqueteCompleta);
+            
+            if (subscriptions.has(enquete_id)) {
+                const message = JSON.stringify({ type: 'update', data: enqueteCompleta });
+                for (const client of subscriptions.get(enquete_id)!) {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(message);
+                    }
+                }
+            }
 
             res.status(200).json({ message: 'Voto computado com sucesso!' });
 

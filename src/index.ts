@@ -1,10 +1,20 @@
 import express, { type Request, type Response } from 'express';
 import mysql, { type RowDataPacket } from 'mysql2/promise';
+
+import http from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
+
 import { createApiRouter } from './routes/api.routes.js';
 import { createMainRouter } from './routes/main.routes.js';
 
 const app = express();
 const port = 3000;
+
+const server = http.createServer(app);
+
+const wss = new WebSocketServer({ server });
+
+const subscriptions = new Map<number, Set<WebSocket>>();
 
 const dbConfig = {
     host: 'localhost',
@@ -12,6 +22,40 @@ const dbConfig = {
     password: '',
     database: 'signotech'
 };
+
+
+wss.on('connection', (ws: WebSocket) => {
+    // console.log('Cliente WebSocket conectado.');
+
+    ws.on('message', (message: string) => {
+        try {
+            const data = JSON.parse(message);
+
+            if (data.type === 'subscribe' && data.enqueteId) {
+                const enqueteId = Number(data.enqueteId);
+                if (!subscriptions.has(enqueteId)) {
+                    subscriptions.set(enqueteId, new Set());
+                }
+                subscriptions.get(enqueteId)!.add(ws);
+                // @ts-ignore
+                ws.enqueteId = enqueteId; 
+                // console.log(`Cliente inscrito na enquete ${enqueteId}`);
+            }
+        } catch (error) {
+            console.error('Erro ao processar mensagem WebSocket:', error);
+        }
+    });
+
+    ws.on('close', () => {
+        // console.log('Cliente WebSocket desconectado.');
+        // @ts-ignore
+        const enqueteId = ws.enqueteId;
+        if (enqueteId && subscriptions.has(enqueteId)) {
+            subscriptions.get(enqueteId)!.delete(ws);
+        }
+    });
+});
+
 
 async function main() {
     let connection: mysql.Connection | undefined;
@@ -23,12 +67,12 @@ async function main() {
         app.use(express.json());
 
         const mainRouter = createMainRouter(connection);
-        const apiRouter = createApiRouter(connection);
+        const apiRouter = createApiRouter(connection, wss, subscriptions);
 
         app.use('/', mainRouter);
         app.use('/api', apiRouter);
 
-        app.listen(port, () => {
+        server.listen(port, () => {
             console.log(`Servidor rodando em http://localhost:${port}`);
         });
 
