@@ -118,60 +118,50 @@ export function createApiRouter(connection: mysql.Connection, wss: WebSocketServ
             res.status(500).json({ error: 'Erro interno ao deletar a enquete.' });
         }
     });
-
-
     router.patch('/enquetes/:id', async (req: Request, res: Response) => {
+        const { id: enqueteId } = req.params;
+        const { titulo, descricao, data_inicio, data_termino, opcoes, idsParaDeletar } = req.body;
 
-        const { id } = req.params;
-        const { titulo, descricao, data_inicio, data_termino, ativo } = req.body;
-
-        const setClauses = [];
-        const values = [];
-
-        if (titulo !== undefined) {
-            setClauses.push('titulo = ?');
-            values.push(titulo);
-        }
-        if (descricao !== undefined) {
-            setClauses.push('descricao = ?');
-            values.push(descricao);
-        }
-        if (data_inicio !== undefined) {
-            setClauses.push('data_inicio = ?');
-            values.push(data_inicio);
-        }
-        if (data_termino !== undefined) {
-            setClauses.push('data_termino = ?');
-            values.push(data_termino);
-        }
-        if (ativo !== undefined) {
-            setClauses.push('ativo = ?');
-            values.push(ativo);
+        if (!titulo || !data_inicio || !data_termino || !opcoes) {
+            return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
         }
 
-        if (setClauses.length === 0) {
-            return res.status(400).json({ error: 'Nenhum campo fornecido para atualização.' });
-        }
-
-        values.push(id);
-
-        const sql = `UPDATE enquete SET ${setClauses.join(', ')} WHERE id = ?`;
+        await connection.beginTransaction();
 
         try {
-            const [result] = await connection.execute<mysql.ResultSetHeader>(sql, values);
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ error: 'Enquete não encontrada.' });
+            const sqlUpdateEnquete = 'UPDATE enquete SET titulo = ?, descricao = ?, data_inicio = ?, data_termino = ? WHERE id = ?';
+            await connection.execute(sqlUpdateEnquete, [titulo, descricao, data_inicio, data_termino, enqueteId]);
+
+            if (idsParaDeletar && idsParaDeletar.length > 0) {
+                // Cria um placeholder '?' para cada ID no array
+                const placeholders = idsParaDeletar.map(() => '?').join(',');
+                
+                // Monta a query dinamicamente
+                const sqlDeleteOpcoes = `DELETE FROM opcoes WHERE id IN (${placeholders}) AND enquete_id = ?`;
+                
+                // Cria um novo array de valores contendo os IDs e o enqueteId no final
+                const deleteValues = [...idsParaDeletar, enqueteId];
+
+                await connection.execute(sqlDeleteOpcoes, deleteValues);
             }
 
-            const [rows] = await connection.execute<Enquete[] & mysql.RowDataPacket[]>('SELECT * FROM enquete WHERE id = ?', [id]);
+            for (const opcao of opcoes) {
+                if (opcao.id) {
+                    const sqlUpdateOpcao = 'UPDATE opcoes SET texto = ? WHERE id = ? AND enquete_id = ?';
+                    await connection.execute(sqlUpdateOpcao, [opcao.texto, opcao.id, enqueteId]);
+                } else {
+                    const sqlInsertOpcao = 'INSERT INTO opcoes (enquete_id, texto) VALUES (?, ?)';
+                    await connection.execute(sqlInsertOpcao, [enqueteId, opcao.texto]);
+                }
+            }
 
-            res.status(200).json({
-                message: 'Enquete atualizada com sucesso!',
-                enquete: rows[0]
-            });
+            await connection.commit(); 
+
+            res.status(200).json({ message: 'Enquete atualizada com sucesso!' });
 
         } catch (error) {
+            await connection.rollback();
             console.error('Erro ao atualizar enquete:', error);
             res.status(500).json({ error: 'Erro interno ao atualizar a enquete.' });
         }
@@ -244,6 +234,9 @@ export function createApiRouter(connection: mysql.Connection, wss: WebSocketServ
         }
     });
 
+    router.get('/meu-ip', (req: Request, res: Response) => {
+        res.json({ ip: req.ip });
+    });
 
     return router;
 }

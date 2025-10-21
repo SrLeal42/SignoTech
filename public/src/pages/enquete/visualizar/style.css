@@ -82,3 +82,38 @@
     transform: none;
     box-shadow: none;
 }
+
+.container-edit, .container-delete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 55px;
+    height: 40px;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.container-edit {
+    background-color: #0038a1; /* Amarelo para editar */
+}
+
+.container-delete {
+    background-color: #f44336; /* Vermelho para excluir */
+}
+
+.container-edit:hover, .container-delete:hover {
+    transform: scale(1.05);
+}
+
+.edit-icon, .delete-icon {
+    color: white;
+    font-size: 150%;
+    margin: 0;
+    line-height: 1;
+}
+
+.delete-icon{
+    font-weight: bold;
+}

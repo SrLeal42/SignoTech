@@ -27,6 +27,11 @@ export function createMainRouter(connection: mysql.Connection) {
         const htmlPath = path.join(__dirname, '..', '..', 'public/src/pages/enquete/visualizar/', 'index.html');
         res.sendFile(htmlPath);
     });
+    
+    router.get('/enquete/editar/:id', (req: Request, res: Response) => {
+        const htmlPath = path.join(__dirname, '..', '..', 'public/src/pages/enquete/editar/', 'index.html');
+        res.sendFile(htmlPath);
+    });
 
     return router;
 }

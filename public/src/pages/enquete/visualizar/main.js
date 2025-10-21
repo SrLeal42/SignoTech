@@ -113,6 +113,47 @@ async function CarregarEnqueteInicial() {
 
         ConectarWebSocket(enqueteId);
 
+        const responseVisitante = await fetch('/api/meu-ip');
+        
+        if (!responseVisitante.ok) throw new Error('Não foi possível verificar o IP.');
+        
+        const visitante = await responseVisitante.json();
+
+        const iconsContainer = document.querySelector('.container-icons');
+        if (enqueteAtual.enquete.ip_address === visitante.ip) {
+
+            const editLink = document.createElement('a');
+            editLink.href = `/enquete/editar/${enqueteId}`; 
+            editLink.classList.add('link-sem-estilo');
+            editLink.innerHTML = `
+                <div class="container-edit">
+                    <p class="edit-icon">✎</p> 
+                </div>
+            `;
+
+            const deleteButton = document.createElement('div');
+            deleteButton.classList.add('container-delete');
+            deleteButton.innerHTML = `<p class="delete-icon">X</p>`;
+            
+            deleteButton.addEventListener('click', async () => {
+                if (confirm('Tem certeza que deseja excluir esta enquete? Esta ação não pode ser desfeita.')) {
+                    try {
+                        const deleteResponse = await fetch(`/api/enquetes/${enqueteId}`, {
+                            method: 'DELETE'
+                        });
+                        if (!deleteResponse.ok) throw new Error('Falha ao excluir.');
+                        alert('Enquete excluída com sucesso!');
+                        window.location.href = '/';
+                    } catch (error) {
+                        alert(`Erro: ${error.message}`);
+                    }
+                }
+            });
+
+            iconsContainer.appendChild(editLink);
+            iconsContainer.appendChild(deleteButton);
+        }
+
     } catch (error) {
         frame.innerHTML = `<h1>Erro ao carregar enquete: ${error.message}</h1>`;
     }

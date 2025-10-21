@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form-criar-enquete');
     const opcoesContainer = document.getElementById('opcoes-container');
     const btnAddOpcao = document.getElementById('btn-add-opcao');
-    const btnRemoveOpcao = document.getElementById('btn-remove-opcao'); // Novo botão
+    const btnRemoveOpcao = document.getElementById('btn-remove-opcao'); 
     const errorMessage = document.getElementById('error-message');
 
     function AtualizarEstadoBotaoRemover() {
@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRemoveOpcao.disabled = inputCount <= 3;
     }
 
-    // Evento para adicionar opção
     btnAddOpcao.addEventListener('click', () => {
         const inputCount = opcoesContainer.querySelectorAll('.opcao-input').length;
         const novoInput = document.createElement('input');
@@ -23,14 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
         novoInput.placeholder = `Opção ${inputCount + 1}`;
         novoInput.required = true;
         opcoesContainer.appendChild(novoInput);
-        AtualizarEstadoBotaoRemover(); // Atualiza o estado do botão
+        AtualizarEstadoBotaoRemover(); 
     });
 
     btnRemoveOpcao.addEventListener('click', () => {
         const inputs = opcoesContainer.querySelectorAll('.opcao-input');
         if (inputs.length > 3) {
             inputs[inputs.length - 1].remove();
-            AtualizarEstadoBotaoRemover(); // Atualiza o estado do botão
+            AtualizarEstadoBotaoRemover(); 
         }
     });
 
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (opcoes.length < 3) {
-            errorMessage.textContent = 'Por favor, forneça pelo menos duas opções válidas.';
+            errorMessage.textContent = 'Por favor, forneça pelo menos três opções válidas.';
             return;
         }
 

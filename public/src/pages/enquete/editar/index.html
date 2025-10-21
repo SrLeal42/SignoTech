@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="/pages/enquete/editar/style.css">
+    <link rel="stylesheet" href="/shared/style.css">
+    <title>Enquetes</title>
+</head>
+<body>
+    <div class="frame">
+        <h1>Editar Enquete</h1>
+        <div class="container-icons">
+            <a href="/" class="link-sem-estilo">
+                <div class="container-back">
+                    <p class="back-icon">🠔</p>
+                </div>
+            </a>
+        </div>
+        <div class="container-enquetes" id="container-enquetes-id">  
+        </div>
+
+
+        <form id="form-criar-enquete" class="enquete-form">
+            <div class="form-group">
+                <label for="titulo">Título da Enquete*</label>
+                <input type="text" id="titulo" name="titulo" placeholder="Qual será a pergunta?" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao">Descrição (Opcional)</label>
+                <textarea id="descricao" name="descricao" rows="3" placeholder="Adicione um contexto para sua pergunta."></textarea>
+            </div>
+
+            <div class="date-group">
+                <div class="form-group">
+                    <label for="data_inicio">Início da Enquete*</label>
+                    <input type="datetime-local" id="data_inicio" name="data_inicio" required>
+                </div>
+                <div class="form-group">
+                    <label for="data_termino">Fim da Enquete*</label>
+                    <input type="datetime-local" id="data_termino" name="data_termino" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Opções de Resposta*</label>
+                <div id="opcoes-container">
+                    <input type="text" name="opcao" class="opcao-input" placeholder="Opção 1" required>
+                    <input type="text" name="opcao" class="opcao-input" placeholder="Opção 2" required>
+                    <input type="text" name="opcao" class="opcao-input" placeholder="Opção 3" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="btn-add-opcao" class="btn-secondary">+ Adicionar Opção</button>
+                    <button type="button" id="btn-remove-opcao" class="btn-danger">- Remover Última</button>
+                </div>
+            </div>
+            
+            <div id="error-message" class="error"></div>
+
+            <button type="submit" class="btn-primary">Atualizar Enquete</button>
+        </form>
+
+
+    </div>
+</body>
+
+<script type="module" src="/pages/enquete/editar/main.js"></script>
+
+</html>
